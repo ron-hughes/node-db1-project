@@ -9,7 +9,7 @@ router.get("/", async(req, res, next) => {
   
     
     if (limit || sortby || sortdir) {
-        const queried = await db.select("*").from("accounts").limit(limit)
+        const queried = await db.select("*").from("accounts").limit(limit).orderBy(sortby, sortdir)
         res.json(queried)
     }
     else {

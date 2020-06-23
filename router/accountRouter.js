@@ -6,21 +6,24 @@ const router = express.Router();
 // GET ALL ACCOUNTS
 router.get("/", async(req, res, next) => {
     const { limit, sortby, sortdir } = req.query
-  
-    
-    if (limit || sortby || sortdir) {
-        const queried = await db.select("*").from("accounts").limit(limit).orderBy(sortby, sortdir)
-        res.json(queried)
+    switch(limit || sortby){
+        case limit :
+            const queried = await db.select("*").from("accounts").limit(limit);
+            res.json(queried)
+        break;
+        case sortby:
+            const queriedSorted = await db.select("*").from("accounts").orderBy(sortby, sortdir);
+            res.json(queriedSorted)
+        break;
+        default:
+            try {
+                const accounts = await db.select("*").from("accounts")
+                res.json(accounts)
+            }
+            catch (err) {
+                next(err)
+        }
     }
-    else {
-    try {
-        const accounts = await db.select("*").from("accounts")
-        res.json(accounts)
-    }
-    catch (err) {
-        next(err)
-    }
-}
 })
 
 // GET ACCOUNT BY ID
@@ -42,6 +45,24 @@ router.delete("/:id", async(req, res, next) => {
     try {
         await db("accounts").where("id", id).del()
         res.status(204).end()
+    }
+    catch (err) {
+        next(err)
+    }
+
+})
+
+router.post("/", async (req, res, next) => {
+    const { name, budget } = req.body
+    const payload = {
+        name: name,
+        budget: budget,
+    }
+
+    try {
+        const [id] = await db("accounts").insert(payload)
+        const message = await db("accounts").where("id", id).first();
+        res.json(message)
     }
     catch (err) {
         next(err)
